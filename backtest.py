@@ -13,10 +13,12 @@ import pandas as pd
 import config
 
 
-def run_backtest(model, data: pd.DataFrame, X: pd.DataFrame) -> pd.DataFrame:
+def run_backtest(model, data: pd.DataFrame, X: pd.DataFrame, point: float = None) -> pd.DataFrame:
     """
-    data : DataFrame complet (avec close/high/low et l'index temporel) déjà
+    data : DataFrame complet (avec close/high/low/spread et l'index temporel) déjà
            aligné avec X (même index, post-dropna).
+    point : "point" MT5 du symbole, pour convertir la colonne 'spread' (en points)
+            en coût réel. Si None, retombe sur une approximation d'1 pip.
     """
     preds = model.predict(X)
     proba = model.predict_proba(X)
@@ -26,12 +28,15 @@ def run_backtest(model, data: pd.DataFrame, X: pd.DataFrame) -> pd.DataFrame:
     sl = config.STOP_LOSS_PIPS * config.PIP_SIZE
     tp = config.TAKE_PROFIT_PIPS * config.PIP_SIZE
     horizon = config.LABEL_HORIZON_BARS
-    spread_cost = config.PIP_SIZE  # approx. 1 pip de coût par aller-retour
 
     trades = []
     closes = data["close"].values
     highs = data["high"].values
     lows = data["low"].values
+    if point is not None and "spread" in data.columns:
+        spread_costs = data["spread"].values * point
+    else:
+        spread_costs = np.full(len(data), config.PIP_SIZE)  # approx. 1 pip de coût par aller-retour
     idx = data.index
 
     n = len(data)
@@ -65,7 +70,7 @@ def run_backtest(model, data: pd.DataFrame, X: pd.DataFrame) -> pd.DataFrame:
                     exit_price, exit_reason = tp_price, "take_profit"
                     break
 
-        pnl_price = direction * (exit_price - entry) - spread_cost
+        pnl_price = direction * (exit_price - entry) - spread_costs[i]
         pnl_pips = pnl_price / config.PIP_SIZE
 
         trades.append({

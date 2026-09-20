@@ -20,6 +20,7 @@ def main():
         raw = data_loader.fetch_history()
         print(f"[data] {len(raw)} bougies récupérées "
               f"({raw.index[0]} -> {raw.index[-1]})")
+        point = data_loader.get_point()
     finally:
         data_loader.disconnect()
 
@@ -36,7 +37,7 @@ def main():
 
     print("\n[backtest] Simulation sur la période de test...")
     test_data = full_data.loc[X_test.index]
-    trades = run_backtest(clf, test_data, X_test)
+    trades = run_backtest(clf, test_data, X_test, point=point)
     summarize(trades)
 
     model_module.save_model(clf)

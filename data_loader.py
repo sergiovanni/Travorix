@@ -84,6 +84,17 @@ def is_demo_account() -> bool:
     return info.trade_mode == 0
 
 
+def get_point(symbol: str = None) -> float:
+    """Retourne le 'point' MT5 du symbole (plus petite variation de prix cotée),
+    nécessaire pour convertir la colonne 'spread' (en points) en prix."""
+    _require_mt5()
+    symbol = symbol or config.SYMBOL
+    info = mt5.symbol_info(symbol)
+    if info is None:
+        sys.exit(f"Impossible de récupérer les infos du symbole {symbol}")
+    return info.point
+
+
 def fetch_history(symbol: str = None, timeframe: str = None,
                    years: int = None) -> pd.DataFrame:
     """Récupère l'historique OHLCV pour l'entraînement / le backtest."""
