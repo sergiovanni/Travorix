@@ -1,0 +1,20 @@
+# Modèle et données locales
+*.joblib
+*.csv
+*.pkl
+data/
+
+# Environnement Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Config avec identifiants (si un jour tu externalises les secrets)
+.env
+
+# Éditeurs / OS
+.vscode/
+.idea/
+.DS_Store
