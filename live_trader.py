@@ -60,6 +60,19 @@ def _count_open_positions(symbol: str) -> int:
     return len(positions) if positions else 0
 
 
+def _supported_filling_mode(symbol: str) -> int:
+    """Certains brokers/symboles ne supportent pas IOC (retcode 10030
+    'Unsupported filling mode') : on détecte le mode réellement accepté."""
+    # SYMBOL_FILLING_FOK = 1, SYMBOL_FILLING_IOC = 2 (bitmask, non exposés par
+    # le module Python MetaTrader5 sous ce nom -> valeurs littérales de l'API MQL5)
+    flags = mt5.symbol_info(symbol).filling_mode
+    if flags & 2:
+        return mt5.ORDER_FILLING_IOC
+    if flags & 1:
+        return mt5.ORDER_FILLING_FOK
+    return mt5.ORDER_FILLING_RETURN
+
+
 def _place_order(symbol: str, direction: int, confidence: float):
     tick = mt5.symbol_info_tick(symbol)
     price = tick.ask if direction == 1 else tick.bid
@@ -82,7 +95,7 @@ def _place_order(symbol: str, direction: int, confidence: float):
         "magic": config.MAGIC_NUMBER,
         "comment": f"ml-bot conf={confidence:.2f}",
         "type_time": mt5.ORDER_TIME_GTC,
-        "type_filling": mt5.ORDER_FILLING_IOC,
+        "type_filling": _supported_filling_mode(symbol),
     }
     result = mt5.order_send(request)
     if result.retcode != mt5.TRADE_RETCODE_DONE:
