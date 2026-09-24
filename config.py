@@ -43,3 +43,28 @@ ALLOW_REAL_ACCOUNT = False
 # --- Exécution live ---
 POLL_SECONDS = 30             # fréquence de vérification d'une nouvelle bougie
 MAGIC_NUMBER = 20260920       # identifiant unique des ordres passés par ce bot
+
+# --- Scalping intelligent (scalping_bot.py) ---
+# Strategie independante de train.py/live_trader.py : direction basee sur une
+# tendance court terme (EMA rapide vs EMA lente), pas sur le modele ML.
+SCALP_TIMEFRAME = "M1"
+SCALP_EMA_FAST = 5
+SCALP_EMA_SLOW = 20
+SCALP_MIN_TREND_GAP = 0.15          # écart mini EMA rapide/lente (en unité PIP_SIZE) pour valider une tendance
+SCALP_LOT_SIZE = 0.01
+
+SCALP_MAX_CONCURRENT = 6            # positions simultanées normales
+SCALP_ABSOLUTE_MAX_CONCURRENT = 7   # 7e position : uniquement si signal exceptionnel (cas majeur)
+SCALP_LAST_SLOT_GAP_MULTIPLIER = 2.5     # seuil exigé pour utiliser la dernière position normale
+SCALP_EXCEPTIONAL_GAP_MULTIPLIER = 4.0   # seuil exigé pour la 7e position exceptionnelle
+
+SCALP_TOP_LEVEL_CLOSE = 5.0         # verrouillage de gain de sécurité (EUR), quel que soit le signal
+SCALP_EXCEPTIONAL_TOP_CLOSE = 3.0   # verrouillage plus bas pour la 7e position (plus risquée)
+
+SCALP_MAX_PYRAMID = 2               # nb max d'ajouts de lot sur une position gagnante dont la tendance se renforce
+SCALP_PYRAMID_GAP_MULTIPLIER = 1.3  # la tendance doit être 30% plus forte qu'à l'entrée pour ajouter
+
+SCALP_MAX_TOTAL_ENTRIES = 30        # limite de nouvelles entrées par session
+SCALP_LOOP_SLEEP_SECONDS = 8
+SCALP_SESSION_MAX_MINUTES = 45
+SCALP_EQUITY_FLOOR_PCT = 0.75       # coupe-circuit dur : arrêt total si equity < 75% du solde de départ
