@@ -73,7 +73,7 @@ SCALP_TRAIL_DRAWBACK_EUR = 0.20
 SCALP_MAX_PYRAMID = 2               # nb max d'ajouts de lot sur une position gagnante dont la tendance se renforce
 SCALP_PYRAMID_GAP_MULTIPLIER = 1.3  # la tendance doit être 30% plus forte qu'à l'entrée pour ajouter
 
-SCALP_MAX_TOTAL_ENTRIES = 30        # limite de nouvelles entrées par session
+SCALP_MAX_TOTAL_ENTRIES = 300       # limite de nouvelles entrées par session (large vu la duree de 4h)
 SCALP_LOOP_SLEEP_SECONDS = 8
-SCALP_SESSION_MAX_MINUTES = 45
+SCALP_SESSION_MAX_MINUTES = 240     # 4h, a la demande
 SCALP_EQUITY_FLOOR_PCT = 0.75       # coupe-circuit dur : arrêt total si equity < 75% du solde de départ
