@@ -61,6 +61,15 @@ SCALP_EXCEPTIONAL_GAP_MULTIPLIER = 4.0   # seuil exigé pour la 7e position exce
 SCALP_TOP_LEVEL_CLOSE = 5.0         # verrouillage de gain de sécurité (EUR), quel que soit le signal
 SCALP_EXCEPTIONAL_TOP_CLOSE = 3.0   # verrouillage plus bas pour la 7e position (plus risquée)
 
+# Trailing rapide : sur ce lot/cette volatilité, les gains flottants observés
+# oscillent surtout entre 0 et ~1.5 EUR avant de repartir en négatif. Attendre
+# un retournement de tendance confirmé ou le plafond de sécurité (5 EUR) est
+# trop lent et laisse échapper des gains réels. Des qu'une position depasse
+# SCALP_TRAIL_ACTIVATION_EUR, on suit son pic et on ferme si elle redonne
+# SCALP_TRAIL_DRAWBACK_EUR depuis ce pic - sans attendre un retournement.
+SCALP_TRAIL_ACTIVATION_EUR = 0.30
+SCALP_TRAIL_DRAWBACK_EUR = 0.20
+
 SCALP_MAX_PYRAMID = 2               # nb max d'ajouts de lot sur une position gagnante dont la tendance se renforce
 SCALP_PYRAMID_GAP_MULTIPLIER = 1.3  # la tendance doit être 30% plus forte qu'à l'entrée pour ajouter
 

@@ -94,6 +94,7 @@ class ScalpingSession:
         self.position_meta = {}       # ticket -> {"root", "direction", "exceptional"}
         self.root_entry_gap = {}      # root_ticket -> écart EMA à l'ouverture
         self.root_pyramid_count = {}  # root_ticket -> nb d'ajouts déjà faits
+        self.peak_profit = {}         # ticket -> profit flottant maximum observé
         self.closed_results = []
         self.total_entries = 0
         self.starting_balance = mt5.account_info().balance
@@ -138,8 +139,11 @@ class ScalpingSession:
                       f"(retcode={res.retcode})", flush=True)
                 self.closed_results.append(pos.profit)
                 self.position_meta.pop(pos.ticket, None)
+                self.peak_profit.pop(pos.ticket, None)
                 continue
 
+            # Chemin rapide : un retournement confirme pendant qu'on est en gain
+            # vaut la peine d'etre pris tout de suite, sans attendre le trailing.
             reversed_signal = current_direction is not None and current_direction != meta["direction"]
             if reversed_signal and pos.profit > 0:
                 res = close_position(pos)
@@ -147,11 +151,26 @@ class ScalpingSession:
                       f"(retcode={res.retcode})", flush=True)
                 self.closed_results.append(pos.profit)
                 self.position_meta.pop(pos.ticket, None)
+                self.peak_profit.pop(pos.ticket, None)
+                continue
+
+            # Trailing rapide : capte un gain reel avant qu'il ne reparte en
+            # negatif, sans attendre la confirmation (souvent trop lente) d'un
+            # retournement de tendance.
+            peak = max(self.peak_profit.get(pos.ticket, pos.profit), pos.profit)
+            self.peak_profit[pos.ticket] = peak
+            if peak >= config.SCALP_TRAIL_ACTIVATION_EUR and pos.profit <= peak - config.SCALP_TRAIL_DRAWBACK_EUR:
+                res = close_position(pos)
+                print(f"[ticket {pos.ticket}] FERMÉE SUR TRAILING à +{pos.profit:.2f} EUR "
+                      f"(pic={peak:.2f}, retcode={res.retcode})", flush=True)
+                self.closed_results.append(pos.profit)
+                self.position_meta.pop(pos.ticket, None)
+                self.peak_profit.pop(pos.ticket, None)
                 continue
 
             still_open_roots.add(meta["root"])
             print(f"[ticket {pos.ticket}] {'ACHAT' if meta['direction'] == 1 else 'VENTE'} "
-                  f"profit={pos.profit:+.2f} EUR", flush=True)
+                  f"profit={pos.profit:+.2f} EUR (pic={peak:.2f})", flush=True)
         return still_open_roots
 
     def try_pyramid(self, current_direction, current_gap, still_open_roots):
